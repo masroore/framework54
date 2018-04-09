@@ -2,16 +2,16 @@
 
 namespace Illuminate\Notifications\Channels;
 
-use RuntimeException;
 use Illuminate\Notifications\Notification;
+use RuntimeException;
 
 class DatabaseChannel
 {
     /**
      * Send the given notification.
      *
-     * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  mixed $notifiable
+     * @param  \Illuminate\Notifications\Notification $notification
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function send($notifiable, Notification $notification)
@@ -27,8 +27,8 @@ class DatabaseChannel
     /**
      * Get the data for the notification.
      *
-     * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param  mixed $notifiable
+     * @param  \Illuminate\Notifications\Notification $notification
      * @return array
      *
      * @throws \RuntimeException
@@ -37,7 +37,7 @@ class DatabaseChannel
     {
         if (method_exists($notification, 'toDatabase')) {
             return is_array($data = $notification->toDatabase($notifiable))
-                                ? $data : $data->data;
+                ? $data : $data->data;
         }
 
         if (method_exists($notification, 'toArray')) {

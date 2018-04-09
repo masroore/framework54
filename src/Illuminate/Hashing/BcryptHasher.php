@@ -2,8 +2,8 @@
 
 namespace Illuminate\Hashing;
 
-use RuntimeException;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
+use RuntimeException;
 
 class BcryptHasher implements HasherContract
 {
@@ -17,8 +17,8 @@ class BcryptHasher implements HasherContract
     /**
      * Hash the given value.
      *
-     * @param  string  $value
-     * @param  array   $options
+     * @param  string $value
+     * @param  array $options
      * @return string
      *
      * @throws \RuntimeException
@@ -37,11 +37,22 @@ class BcryptHasher implements HasherContract
     }
 
     /**
+     * Extract the cost value from the options array.
+     *
+     * @param  array $options
+     * @return int
+     */
+    protected function cost(array $options = [])
+    {
+        return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
+    }
+
+    /**
      * Check the given plain value against a hash.
      *
-     * @param  string  $value
-     * @param  string  $hashedValue
-     * @param  array   $options
+     * @param  string $value
+     * @param  string $hashedValue
+     * @param  array $options
      * @return bool
      */
     public function check($value, $hashedValue, array $options = [])
@@ -56,8 +67,8 @@ class BcryptHasher implements HasherContract
     /**
      * Check if the given hash has been hashed using the given options.
      *
-     * @param  string  $hashedValue
-     * @param  array   $options
+     * @param  string $hashedValue
+     * @param  array $options
      * @return bool
      */
     public function needsRehash($hashedValue, array $options = [])
@@ -70,24 +81,13 @@ class BcryptHasher implements HasherContract
     /**
      * Set the default password work factor.
      *
-     * @param  int  $rounds
+     * @param  int $rounds
      * @return $this
      */
     public function setRounds($rounds)
     {
-        $this->rounds = (int) $rounds;
+        $this->rounds = (int)$rounds;
 
         return $this;
-    }
-
-    /**
-     * Extract the cost value from the options array.
-     *
-     * @param  array  $options
-     * @return int
-     */
-    protected function cost(array $options = [])
-    {
-        return isset($options['rounds']) ? $options['rounds'] : $this->rounds;
     }
 }

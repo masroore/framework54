@@ -2,10 +2,10 @@
 
 namespace Illuminate\Mail;
 
-use Swift_Mailer;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use Swift_Mailer;
 
 class MailServiceProvider extends ServiceProvider
 {
@@ -28,6 +28,35 @@ class MailServiceProvider extends ServiceProvider
         $this->registerIlluminateMailer();
 
         $this->registerMarkdownRenderer();
+    }
+
+    /**
+     * Register the Swift Mailer instance.
+     *
+     * @return void
+     */
+    public function registerSwiftMailer()
+    {
+        $this->registerSwiftTransport();
+
+        // Once we have the transporter registered, we will register the actual Swift
+        // mailer instance, passing in the transport instances, which allows us to
+        // override this transporter instances during app start-up if necessary.
+        $this->app->singleton('swift.mailer', function ($app) {
+            return new Swift_Mailer($app['swift.transport']->driver());
+        });
+    }
+
+    /**
+     * Register the Swift Transport instance.
+     *
+     * @return void
+     */
+    protected function registerSwiftTransport()
+    {
+        $this->app->singleton('swift.transport', function ($app) {
+            return new TransportManager($app);
+        });
     }
 
     /**
@@ -65,9 +94,9 @@ class MailServiceProvider extends ServiceProvider
     /**
      * Set a global address on the mailer by type.
      *
-     * @param  \Illuminate\Mail\Mailer  $mailer
-     * @param  array  $config
-     * @param  string  $type
+     * @param  \Illuminate\Mail\Mailer $mailer
+     * @param  array $config
+     * @param  string $type
      * @return void
      */
     protected function setGlobalAddress($mailer, array $config, $type)
@@ -75,37 +104,8 @@ class MailServiceProvider extends ServiceProvider
         $address = Arr::get($config, $type);
 
         if (is_array($address) && isset($address['address'])) {
-            $mailer->{'always'.Str::studly($type)}($address['address'], $address['name']);
+            $mailer->{'always' . Str::studly($type)}($address['address'], $address['name']);
         }
-    }
-
-    /**
-     * Register the Swift Mailer instance.
-     *
-     * @return void
-     */
-    public function registerSwiftMailer()
-    {
-        $this->registerSwiftTransport();
-
-        // Once we have the transporter registered, we will register the actual Swift
-        // mailer instance, passing in the transport instances, which allows us to
-        // override this transporter instances during app start-up if necessary.
-        $this->app->singleton('swift.mailer', function ($app) {
-            return new Swift_Mailer($app['swift.transport']->driver());
-        });
-    }
-
-    /**
-     * Register the Swift Transport instance.
-     *
-     * @return void
-     */
-    protected function registerSwiftTransport()
-    {
-        $this->app->singleton('swift.transport', function ($app) {
-            return new TransportManager($app);
-        });
     }
 
     /**
@@ -117,7 +117,7 @@ class MailServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/resources/views' => $this->app->resourcePath('views/vendor/mail'),
+                __DIR__ . '/resources/views' => $this->app->resourcePath('views/vendor/mail'),
             ], 'laravel-mail');
         }
 

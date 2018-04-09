@@ -20,13 +20,23 @@ trait HasTimestamps
      */
     public function touch()
     {
-        if (! $this->usesTimestamps()) {
+        if (!$this->usesTimestamps()) {
             return false;
         }
 
         $this->updateTimestamps();
 
         return $this->save();
+    }
+
+    /**
+     * Determine if the model uses timestamps.
+     *
+     * @return bool
+     */
+    public function usesTimestamps()
+    {
+        return $this->timestamps;
     }
 
     /**
@@ -38,39 +48,13 @@ trait HasTimestamps
     {
         $time = $this->freshTimestamp();
 
-        if (! $this->isDirty(static::UPDATED_AT)) {
+        if (!$this->isDirty(static::UPDATED_AT)) {
             $this->setUpdatedAt($time);
         }
 
-        if (! $this->exists && ! $this->isDirty(static::CREATED_AT)) {
+        if (!$this->exists && !$this->isDirty(static::CREATED_AT)) {
             $this->setCreatedAt($time);
         }
-    }
-
-    /**
-     * Set the value of the "created at" attribute.
-     *
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function setCreatedAt($value)
-    {
-        $this->{static::CREATED_AT} = $value;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of the "updated at" attribute.
-     *
-     * @param  mixed  $value
-     * @return $this
-     */
-    public function setUpdatedAt($value)
-    {
-        $this->{static::UPDATED_AT} = $value;
-
-        return $this;
     }
 
     /**
@@ -84,6 +68,32 @@ trait HasTimestamps
     }
 
     /**
+     * Set the value of the "updated at" attribute.
+     *
+     * @param  mixed $value
+     * @return $this
+     */
+    public function setUpdatedAt($value)
+    {
+        $this->{static::UPDATED_AT} = $value;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of the "created at" attribute.
+     *
+     * @param  mixed $value
+     * @return $this
+     */
+    public function setCreatedAt($value)
+    {
+        $this->{static::CREATED_AT} = $value;
+
+        return $this;
+    }
+
+    /**
      * Get a fresh timestamp for the model.
      *
      * @return string
@@ -91,16 +101,6 @@ trait HasTimestamps
     public function freshTimestampString()
     {
         return $this->fromDateTime($this->freshTimestamp());
-    }
-
-    /**
-     * Determine if the model uses timestamps.
-     *
-     * @return bool
-     */
-    public function usesTimestamps()
-    {
-        return $this->timestamps;
     }
 
     /**

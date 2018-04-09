@@ -2,9 +2,9 @@
 
 namespace Illuminate\Redis;
 
+use Illuminate\Contracts\Redis\Factory;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Illuminate\Contracts\Redis\Factory;
 
 /**
  * @mixin \Illuminate\Redis\Connections\Connection
@@ -35,8 +35,8 @@ class RedisManager implements Factory
     /**
      * Create a new Redis manager instance.
      *
-     * @param  string  $driver
-     * @param  array  $config
+     * @param  string $driver
+     * @param  array $config
      */
     public function __construct($driver, array $config)
     {
@@ -45,9 +45,21 @@ class RedisManager implements Factory
     }
 
     /**
+     * Pass methods onto the default Redis connection.
+     *
+     * @param  string $method
+     * @param  array $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        return $this->connection()->{$method}(...$parameters);
+    }
+
+    /**
      * Get a Redis connection by name.
      *
-     * @param  string|null  $name
+     * @param  string|null $name
      * @return \Illuminate\Redis\Connections\Connection
      */
     public function connection($name = null)
@@ -64,7 +76,7 @@ class RedisManager implements Factory
     /**
      * Resolve the given connection by name.
      *
-     * @param  string|null  $name
+     * @param  string|null $name
      * @return \Illuminate\Redis\Connections\Connection
      *
      * @throws \InvalidArgumentException
@@ -89,21 +101,6 @@ class RedisManager implements Factory
     }
 
     /**
-     * Resolve the given cluster connection by name.
-     *
-     * @param  string  $name
-     * @return \Illuminate\Redis\Connections\Connection
-     */
-    protected function resolveCluster($name)
-    {
-        $clusterOptions = Arr::get($this->config, 'clusters.options', []);
-
-        return $this->connector()->connectToCluster(
-            $this->config['clusters'][$name], $clusterOptions, Arr::get($this->config, 'options', [])
-        );
-    }
-
-    /**
      * Get the connector instance for the current driver.
      *
      * @return \Illuminate\Redis\Connectors\PhpRedisConnector|\Illuminate\Redis\Connectors\PredisConnector
@@ -119,14 +116,17 @@ class RedisManager implements Factory
     }
 
     /**
-     * Pass methods onto the default Redis connection.
+     * Resolve the given cluster connection by name.
      *
-     * @param  string  $method
-     * @param  array  $parameters
-     * @return mixed
+     * @param  string $name
+     * @return \Illuminate\Redis\Connections\Connection
      */
-    public function __call($method, $parameters)
+    protected function resolveCluster($name)
     {
-        return $this->connection()->{$method}(...$parameters);
+        $clusterOptions = Arr::get($this->config, 'clusters.options', []);
+
+        return $this->connector()->connectToCluster(
+            $this->config['clusters'][$name], $clusterOptions, Arr::get($this->config, 'options', [])
+        );
     }
 }

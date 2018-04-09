@@ -37,7 +37,7 @@ class PendingMail
     /**
      * Create a new mailable mailer instance.
      *
-     * @param  Mailer  $mailer
+     * @param  Mailer $mailer
      * @return void
      */
     public function __construct(Mailer $mailer)
@@ -48,7 +48,7 @@ class PendingMail
     /**
      * Set the recipients of the message.
      *
-     * @param  mixed  $users
+     * @param  mixed $users
      * @return $this
      */
     public function to($users)
@@ -61,7 +61,7 @@ class PendingMail
     /**
      * Set the recipients of the message.
      *
-     * @param  mixed  $users
+     * @param  mixed $users
      * @return $this
      */
     public function cc($users)
@@ -74,7 +74,7 @@ class PendingMail
     /**
      * Set the recipients of the message.
      *
-     * @param  mixed  $users
+     * @param  mixed $users
      * @return $this
      */
     public function bcc($users)
@@ -87,7 +87,7 @@ class PendingMail
     /**
      * Send a new mailable message instance.
      *
-     * @param  Mailable  $mailable
+     * @param  Mailable $mailable
      * @return mixed
      */
     public function send(Mailable $mailable)
@@ -100,20 +100,9 @@ class PendingMail
     }
 
     /**
-     * Send a mailable message immediately.
-     *
-     * @param  Mailable  $mailable
-     * @return mixed
-     */
-    public function sendNow(Mailable $mailable)
-    {
-        return $this->mailer->send($this->fill($mailable));
-    }
-
-    /**
      * Push the given mailable onto the queue.
      *
-     * @param  Mailable  $mailable
+     * @param  Mailable $mailable
      * @return mixed
      */
     public function queue(Mailable $mailable)
@@ -128,27 +117,38 @@ class PendingMail
     }
 
     /**
-     * Deliver the queued message after the given delay.
-     *
-     * @param  \DateTime|int  $delay
-     * @param  Mailable  $mailable
-     * @return mixed
-     */
-    public function later($delay, Mailable $mailable)
-    {
-        return $this->mailer->later($delay, $this->fill($mailable));
-    }
-
-    /**
      * Populate the mailable with the addresses.
      *
-     * @param  Mailable  $mailable
+     * @param  Mailable $mailable
      * @return Mailable
      */
     protected function fill(Mailable $mailable)
     {
         return $mailable->to($this->to)
-                        ->cc($this->cc)
-                        ->bcc($this->bcc);
+            ->cc($this->cc)
+            ->bcc($this->bcc);
+    }
+
+    /**
+     * Send a mailable message immediately.
+     *
+     * @param  Mailable $mailable
+     * @return mixed
+     */
+    public function sendNow(Mailable $mailable)
+    {
+        return $this->mailer->send($this->fill($mailable));
+    }
+
+    /**
+     * Deliver the queued message after the given delay.
+     *
+     * @param  \DateTime|int $delay
+     * @param  Mailable $mailable
+     * @return mixed
+     */
+    public function later($delay, Mailable $mailable)
+    {
+        return $this->mailer->later($delay, $this->fill($mailable));
     }
 }

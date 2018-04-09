@@ -17,8 +17,8 @@ class BusFake implements Dispatcher
     /**
      * Assert if a job was dispatched based on a truth-test callback.
      *
-     * @param  string  $command
-     * @param  callable|null  $callback
+     * @param  string $command
+     * @param  callable|null $callback
      * @return void
      */
     public function assertDispatched($command, $callback = null)
@@ -30,30 +30,15 @@ class BusFake implements Dispatcher
     }
 
     /**
-     * Determine if a job was dispatched based on a truth-test callback.
-     *
-     * @param  string  $command
-     * @param  callable|null  $callback
-     * @return void
-     */
-    public function assertNotDispatched($command, $callback = null)
-    {
-        PHPUnit::assertTrue(
-            $this->dispatched($command, $callback)->count() === 0,
-            "The unexpected [{$command}] job was dispatched."
-        );
-    }
-
-    /**
      * Get all of the jobs matching a truth-test callback.
      *
-     * @param  string  $command
-     * @param  callable|null  $callback
+     * @param  string $command
+     * @param  callable|null $callback
      * @return \Illuminate\Support\Collection
      */
     public function dispatched($command, $callback = null)
     {
-        if (! $this->hasDispatched($command)) {
+        if (!$this->hasDispatched($command)) {
             return collect();
         }
 
@@ -69,18 +54,33 @@ class BusFake implements Dispatcher
     /**
      * Determine if there are any stored commands for a given class.
      *
-     * @param  string  $command
+     * @param  string $command
      * @return bool
      */
     public function hasDispatched($command)
     {
-        return isset($this->commands[$command]) && ! empty($this->commands[$command]);
+        return isset($this->commands[$command]) && !empty($this->commands[$command]);
+    }
+
+    /**
+     * Determine if a job was dispatched based on a truth-test callback.
+     *
+     * @param  string $command
+     * @param  callable|null $callback
+     * @return void
+     */
+    public function assertNotDispatched($command, $callback = null)
+    {
+        PHPUnit::assertTrue(
+            $this->dispatched($command, $callback)->count() === 0,
+            "The unexpected [{$command}] job was dispatched."
+        );
     }
 
     /**
      * Dispatch a command to its appropriate handler.
      *
-     * @param  mixed  $command
+     * @param  mixed $command
      * @return mixed
      */
     public function dispatch($command)
@@ -91,8 +91,8 @@ class BusFake implements Dispatcher
     /**
      * Dispatch a command to its appropriate handler in the current process.
      *
-     * @param  mixed  $command
-     * @param  mixed  $handler
+     * @param  mixed $command
+     * @param  mixed $handler
      * @return mixed
      */
     public function dispatchNow($command, $handler = null)
@@ -103,7 +103,7 @@ class BusFake implements Dispatcher
     /**
      * Set the pipes commands should be piped through before dispatching.
      *
-     * @param  array  $pipes
+     * @param  array $pipes
      * @return $this
      */
     public function pipeThrough(array $pipes)

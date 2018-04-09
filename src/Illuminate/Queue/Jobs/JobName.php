@@ -10,7 +10,7 @@ class JobName
     /**
      * Parse the given job name into a class / method array.
      *
-     * @param  string  $job
+     * @param  string $job
      * @return array
      */
     public static function parse($job)
@@ -21,13 +21,13 @@ class JobName
     /**
      * Get the resolved name of the queued job class.
      *
-     * @param  string  $name
-     * @param  array  $payload
+     * @param  string $name
+     * @param  array $payload
      * @return string
      */
     public static function resolve($name, $payload)
     {
-        if (! empty($payload['displayName'])) {
+        if (!empty($payload['displayName'])) {
             return $payload['displayName'];
         }
 
@@ -36,7 +36,7 @@ class JobName
         }
 
         if ($name === 'Illuminate\Events\CallQueuedHandler@call') {
-            return $payload['data']['class'].'@'.$payload['data']['method'];
+            return $payload['data']['class'] . '@' . $payload['data']['method'];
         }
 
         return $name;

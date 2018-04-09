@@ -3,22 +3,43 @@
 namespace Illuminate\Mail;
 
 use Aws\Ses\SesClient;
-use Illuminate\Support\Arr;
-use Psr\Log\LoggerInterface;
-use Illuminate\Support\Manager;
 use GuzzleHttp\Client as HttpClient;
-use Swift_MailTransport as MailTransport;
-use Swift_SmtpTransport as SmtpTransport;
-use Illuminate\Mail\Transport\LogTransport;
-use Illuminate\Mail\Transport\SesTransport;
 use Illuminate\Mail\Transport\ArrayTransport;
+use Illuminate\Mail\Transport\LogTransport;
 use Illuminate\Mail\Transport\MailgunTransport;
 use Illuminate\Mail\Transport\MandrillTransport;
+use Illuminate\Mail\Transport\SesTransport;
 use Illuminate\Mail\Transport\SparkPostTransport;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Manager;
+use Psr\Log\LoggerInterface;
+use Swift_MailTransport as MailTransport;
 use Swift_SendmailTransport as SendmailTransport;
+use Swift_SmtpTransport as SmtpTransport;
 
 class TransportManager extends Manager
 {
+    /**
+     * Get the default mail driver name.
+     *
+     * @return string
+     */
+    public function getDefaultDriver()
+    {
+        return $this->app['config']['mail.driver'];
+    }
+
+    /**
+     * Set the default mail driver name.
+     *
+     * @param  string $name
+     * @return void
+     */
+    public function setDefaultDriver($name)
+    {
+        $this->app['config']['mail.driver'] = $name;
+    }
+
     /**
      * Create an instance of the SMTP Swift Transport driver.
      *
@@ -89,7 +110,7 @@ class TransportManager extends Manager
     /**
      * Add the SES credentials to the configuration array.
      *
-     * @param  array  $config
+     * @param  array $config
      * @return array
      */
     protected function addSesCredentials(array $config)
@@ -124,6 +145,19 @@ class TransportManager extends Manager
             $this->guzzle($config),
             $config['secret'], $config['domain']
         );
+    }
+
+    /**
+     * Get a fresh Guzzle HTTP client instance.
+     *
+     * @param  array $config
+     * @return \GuzzleHttp\Client
+     */
+    protected function guzzle($config)
+    {
+        return new HttpClient(Arr::add(
+            Arr::get($config, 'guzzle', []), 'connect_timeout', 60
+        ));
     }
 
     /**
@@ -172,39 +206,5 @@ class TransportManager extends Manager
     protected function createArrayDriver()
     {
         return new ArrayTransport;
-    }
-
-    /**
-     * Get a fresh Guzzle HTTP client instance.
-     *
-     * @param  array  $config
-     * @return \GuzzleHttp\Client
-     */
-    protected function guzzle($config)
-    {
-        return new HttpClient(Arr::add(
-            Arr::get($config, 'guzzle', []), 'connect_timeout', 60
-        ));
-    }
-
-    /**
-     * Get the default mail driver name.
-     *
-     * @return string
-     */
-    public function getDefaultDriver()
-    {
-        return $this->app['config']['mail.driver'];
-    }
-
-    /**
-     * Set the default mail driver name.
-     *
-     * @param  string  $name
-     * @return void
-     */
-    public function setDefaultDriver($name)
-    {
-        $this->app['config']['mail.driver'] = $name;
     }
 }

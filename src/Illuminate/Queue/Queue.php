@@ -32,9 +32,9 @@ abstract class Queue
     /**
      * Push a new job onto the queue.
      *
-     * @param  string  $queue
-     * @param  string  $job
-     * @param  mixed   $data
+     * @param  string $queue
+     * @param  string $job
+     * @param  mixed $data
      * @return mixed
      */
     public function pushOn($queue, $job, $data = '')
@@ -45,10 +45,10 @@ abstract class Queue
     /**
      * Push a new job onto the queue after a delay.
      *
-     * @param  string  $queue
-     * @param  \DateTime|int  $delay
-     * @param  string  $job
-     * @param  mixed   $data
+     * @param  string $queue
+     * @param  \DateTime|int $delay
+     * @param  string $job
+     * @param  mixed $data
      * @return mixed
      */
     public function laterOn($queue, $delay, $job, $data = '')
@@ -59,24 +59,58 @@ abstract class Queue
     /**
      * Push an array of jobs onto the queue.
      *
-     * @param  array   $jobs
-     * @param  mixed   $data
-     * @param  string  $queue
+     * @param  array $jobs
+     * @param  mixed $data
+     * @param  string $queue
      * @return mixed
      */
     public function bulk($jobs, $data = '', $queue = null)
     {
-        foreach ((array) $jobs as $job) {
+        foreach ((array)$jobs as $job) {
             $this->push($job, $data, $queue);
         }
     }
 
     /**
+     * Get the connection name for the queue.
+     *
+     * @return string
+     */
+    public function getConnectionName()
+    {
+        return $this->connectionName;
+    }
+
+    /**
+     * Set the connection name for the queue.
+     *
+     * @param  string $name
+     * @return $this
+     */
+    public function setConnectionName($name)
+    {
+        $this->connectionName = $name;
+
+        return $this;
+    }
+
+    /**
+     * Set the IoC container instance.
+     *
+     * @param  \Illuminate\Container\Container $container
+     * @return void
+     */
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+    }
+
+    /**
      * Create a payload string from the given job and data.
      *
-     * @param  string  $job
-     * @param  mixed   $data
-     * @param  string  $queue
+     * @param  string $job
+     * @param  mixed $data
+     * @param  string $queue
      * @return string
      *
      * @throws \Illuminate\Queue\InvalidPayloadException
@@ -87,7 +121,7 @@ abstract class Queue
 
         if (JSON_ERROR_NONE !== json_last_error()) {
             throw new InvalidPayloadException(
-                'Unable to JSON encode payload. Error code: '.json_last_error()
+                'Unable to JSON encode payload. Error code: ' . json_last_error()
             );
         }
 
@@ -97,22 +131,22 @@ abstract class Queue
     /**
      * Create a payload array from the given job and data.
      *
-     * @param  string  $job
-     * @param  mixed   $data
-     * @param  string  $queue
+     * @param  string $job
+     * @param  mixed $data
+     * @param  string $queue
      * @return array
      */
     protected function createPayloadArray($job, $data = '', $queue = null)
     {
         return is_object($job)
-                    ? $this->createObjectPayload($job)
-                    : $this->createStringPayload($job, $data);
+            ? $this->createObjectPayload($job)
+            : $this->createStringPayload($job, $data);
     }
 
     /**
      * Create a payload for an object-based queue handler.
      *
-     * @param  mixed  $job
+     * @param  mixed $job
      * @return array
      */
     protected function createObjectPayload($job)
@@ -132,20 +166,20 @@ abstract class Queue
     /**
      * Get the display name for the given job.
      *
-     * @param  mixed  $job
+     * @param  mixed $job
      * @return string
      */
     protected function getDisplayName($job)
     {
         return method_exists($job, 'displayName')
-                        ? $job->displayName() : get_class($job);
+            ? $job->displayName() : get_class($job);
     }
 
     /**
      * Create a typical, string based queue payload array.
      *
-     * @param  string  $job
-     * @param  mixed  $data
+     * @param  string $job
+     * @param  mixed $data
      * @return array
      */
     protected function createStringPayload($job, $data)
@@ -155,39 +189,5 @@ abstract class Queue
             'job' => $job, 'maxTries' => null,
             'timeout' => null, 'data' => $data,
         ];
-    }
-
-    /**
-     * Get the connection name for the queue.
-     *
-     * @return string
-     */
-    public function getConnectionName()
-    {
-        return $this->connectionName;
-    }
-
-    /**
-     * Set the connection name for the queue.
-     *
-     * @param  string  $name
-     * @return $this
-     */
-    public function setConnectionName($name)
-    {
-        $this->connectionName = $name;
-
-        return $this;
-    }
-
-    /**
-     * Set the IoC container instance.
-     *
-     * @param  \Illuminate\Container\Container  $container
-     * @return void
-     */
-    public function setContainer(Container $container)
-    {
-        $this->container = $container;
     }
 }

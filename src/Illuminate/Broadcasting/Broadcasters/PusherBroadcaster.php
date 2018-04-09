@@ -2,10 +2,10 @@
 
 namespace Illuminate\Broadcasting\Broadcasters;
 
-use Pusher;
+use Illuminate\Broadcasting\BroadcastException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Broadcasting\BroadcastException;
+use Pusher;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PusherBroadcaster extends Broadcaster
@@ -20,7 +20,7 @@ class PusherBroadcaster extends Broadcaster
     /**
      * Create a new broadcaster instance.
      *
-     * @param  \Pusher  $pusher
+     * @param  \Pusher $pusher
      * @return void
      */
     public function __construct(Pusher $pusher)
@@ -31,19 +31,19 @@ class PusherBroadcaster extends Broadcaster
     /**
      * Authenticate the incoming request for a given channel.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
     public function auth($request)
     {
         if (Str::startsWith($request->channel_name, ['private-', 'presence-']) &&
-            ! $request->user()) {
+            !$request->user()) {
             throw new HttpException(403);
         }
 
         $channelName = Str::startsWith($request->channel_name, 'private-')
-                            ? Str::replaceFirst('private-', '', $request->channel_name)
-                            : Str::replaceFirst('presence-', '', $request->channel_name);
+            ? Str::replaceFirst('private-', '', $request->channel_name)
+            : Str::replaceFirst('presence-', '', $request->channel_name);
 
         return parent::verifyUserCanAccessChannel(
             $request, $channelName
@@ -53,8 +53,8 @@ class PusherBroadcaster extends Broadcaster
     /**
      * Return the valid authentication response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $result
+     * @param  \Illuminate\Http\Request $request
+     * @param  mixed $result
      * @return mixed
      */
     public function validAuthenticationResponse($request, $result)
@@ -74,7 +74,7 @@ class PusherBroadcaster extends Broadcaster
     /**
      * Decode the given Pusher response.
      *
-     * @param  mixed  $response
+     * @param  mixed $response
      * @return array
      */
     protected function decodePusherResponse($response)
@@ -85,9 +85,9 @@ class PusherBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param  array  $channels
-     * @param  string  $event
-     * @param  array  $payload
+     * @param  array $channels
+     * @param  string $event
+     * @param  array $payload
      * @return void
      */
     public function broadcast(array $channels, $event, array $payload = [])

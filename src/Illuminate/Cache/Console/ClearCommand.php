@@ -2,10 +2,10 @@
 
 namespace Illuminate\Cache\Console;
 
-use Illuminate\Console\Command;
 use Illuminate\Cache\CacheManager;
-use Symfony\Component\Console\Input\InputOption;
+use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class ClearCommand extends Command
 {
@@ -33,7 +33,7 @@ class ClearCommand extends Command
     /**
      * Create a new cache clear command instance.
      *
-     * @param  \Illuminate\Cache\CacheManager  $cache
+     * @param  \Illuminate\Cache\CacheManager $cache
      * @return void
      */
     public function __construct(CacheManager $cache)
@@ -60,6 +60,16 @@ class ClearCommand extends Command
     }
 
     /**
+     * Get the tags passed to the command.
+     *
+     * @return array
+     */
+    protected function tags()
+    {
+        return array_filter(explode(',', $this->option('tags')));
+    }
+
+    /**
      * Get the cache instance for the command.
      *
      * @return \Illuminate\Cache\Repository
@@ -69,16 +79,6 @@ class ClearCommand extends Command
         $cache = $this->cache->store($this->argument('store'));
 
         return empty($this->tags()) ? $cache : $cache->tags($this->tags());
-    }
-
-    /**
-     * Get the tags passed to the command.
-     *
-     * @return array
-     */
-    protected function tags()
-    {
-        return array_filter(explode(',', $this->option('tags')));
     }
 
     /**

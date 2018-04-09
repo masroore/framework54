@@ -2,8 +2,8 @@
 
 namespace Illuminate\Log;
 
-use Monolog\Logger as Monolog;
 use Illuminate\Support\ServiceProvider;
+use Monolog\Logger as Monolog;
 
 class LogServiceProvider extends ServiceProvider
 {
@@ -52,62 +52,12 @@ class LogServiceProvider extends ServiceProvider
     /**
      * Configure the Monolog handlers for the application.
      *
-     * @param  \Illuminate\Log\Writer  $log
+     * @param  \Illuminate\Log\Writer $log
      * @return void
      */
     protected function configureHandler(Writer $log)
     {
-        $this->{'configure'.ucfirst($this->handler()).'Handler'}($log);
-    }
-
-    /**
-     * Configure the Monolog handlers for the application.
-     *
-     * @param  \Illuminate\Log\Writer  $log
-     * @return void
-     */
-    protected function configureSingleHandler(Writer $log)
-    {
-        $log->useFiles(
-            $this->app->storagePath().'/logs/laravel.log',
-            $this->logLevel()
-        );
-    }
-
-    /**
-     * Configure the Monolog handlers for the application.
-     *
-     * @param  \Illuminate\Log\Writer  $log
-     * @return void
-     */
-    protected function configureDailyHandler(Writer $log)
-    {
-        $log->useDailyFiles(
-            $this->app->storagePath().'/logs/laravel.log', $this->maxFiles(),
-            $this->logLevel()
-        );
-    }
-
-    /**
-     * Configure the Monolog handlers for the application.
-     *
-     * @param  \Illuminate\Log\Writer  $log
-     * @return void
-     */
-    protected function configureSyslogHandler(Writer $log)
-    {
-        $log->useSyslog('laravel', $this->logLevel());
-    }
-
-    /**
-     * Configure the Monolog handlers for the application.
-     *
-     * @param  \Illuminate\Log\Writer  $log
-     * @return void
-     */
-    protected function configureErrorlogHandler(Writer $log)
-    {
-        $log->useErrorLog($this->logLevel());
+        $this->{'configure' . ucfirst($this->handler()) . 'Handler'}($log);
     }
 
     /**
@@ -125,6 +75,20 @@ class LogServiceProvider extends ServiceProvider
     }
 
     /**
+     * Configure the Monolog handlers for the application.
+     *
+     * @param  \Illuminate\Log\Writer $log
+     * @return void
+     */
+    protected function configureSingleHandler(Writer $log)
+    {
+        $log->useFiles(
+            $this->app->storagePath() . '/logs/laravel.log',
+            $this->logLevel()
+        );
+    }
+
+    /**
      * Get the log level for the application.
      *
      * @return string
@@ -139,6 +103,20 @@ class LogServiceProvider extends ServiceProvider
     }
 
     /**
+     * Configure the Monolog handlers for the application.
+     *
+     * @param  \Illuminate\Log\Writer $log
+     * @return void
+     */
+    protected function configureDailyHandler(Writer $log)
+    {
+        $log->useDailyFiles(
+            $this->app->storagePath() . '/logs/laravel.log', $this->maxFiles(),
+            $this->logLevel()
+        );
+    }
+
+    /**
      * Get the maximum number of log files for the application.
      *
      * @return int
@@ -150,5 +128,27 @@ class LogServiceProvider extends ServiceProvider
         }
 
         return 0;
+    }
+
+    /**
+     * Configure the Monolog handlers for the application.
+     *
+     * @param  \Illuminate\Log\Writer $log
+     * @return void
+     */
+    protected function configureSyslogHandler(Writer $log)
+    {
+        $log->useSyslog('laravel', $this->logLevel());
+    }
+
+    /**
+     * Configure the Monolog handlers for the application.
+     *
+     * @param  \Illuminate\Log\Writer $log
+     * @return void
+     */
+    protected function configureErrorlogHandler(Writer $log)
+    {
+        $log->useErrorLog($this->logLevel());
     }
 }

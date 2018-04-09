@@ -35,38 +35,23 @@ class TestMakeCommand extends GeneratorCommand
     protected function getStub()
     {
         if ($this->option('unit')) {
-            return __DIR__.'/stubs/unit-test.stub';
+            return __DIR__ . '/stubs/unit-test.stub';
         } else {
-            return __DIR__.'/stubs/test.stub';
+            return __DIR__ . '/stubs/test.stub';
         }
     }
 
     /**
      * Get the destination class path.
      *
-     * @param  string  $name
+     * @param  string $name
      * @return string
      */
     protected function getPath($name)
     {
         $name = str_replace_first($this->rootNamespace(), '', $name);
 
-        return $this->laravel->basePath().'/tests'.str_replace('\\', '/', $name).'.php';
-    }
-
-    /**
-     * Get the default namespace for the class.
-     *
-     * @param  string  $rootNamespace
-     * @return string
-     */
-    protected function getDefaultNamespace($rootNamespace)
-    {
-        if ($this->option('unit')) {
-            return $rootNamespace.'\Unit';
-        } else {
-            return $rootNamespace.'\Feature';
-        }
+        return $this->laravel->basePath() . '/tests' . str_replace('\\', '/', $name) . '.php';
     }
 
     /**
@@ -77,5 +62,20 @@ class TestMakeCommand extends GeneratorCommand
     protected function rootNamespace()
     {
         return 'Tests';
+    }
+
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param  string $rootNamespace
+     * @return string
+     */
+    protected function getDefaultNamespace($rootNamespace)
+    {
+        if ($this->option('unit')) {
+            return $rootNamespace . '\Unit';
+        } else {
+            return $rootNamespace . '\Feature';
+        }
     }
 }

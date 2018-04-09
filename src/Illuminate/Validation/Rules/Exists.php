@@ -37,8 +37,8 @@ class Exists
     /**
      * Create a new exists rule instance.
      *
-     * @param  string  $table
-     * @param  string  $column
+     * @param  string $table
+     * @param  string $column
      * @return void
      */
     public function __construct($table, $column = 'NULL')
@@ -48,10 +48,22 @@ class Exists
     }
 
     /**
+     * Set a "where not" constraint on the query.
+     *
+     * @param  string $column
+     * @param  string $value
+     * @return $this
+     */
+    public function whereNot($column, $value)
+    {
+        return $this->where($column, '!' . $value);
+    }
+
+    /**
      * Set a "where" constraint on the query.
      *
-     * @param  string  $column
-     * @param  string  $value
+     * @param  string $column
+     * @param  string $value
      * @return $this
      */
     public function where($column, $value = null)
@@ -63,40 +75,6 @@ class Exists
         $this->wheres[] = compact('column', 'value');
 
         return $this;
-    }
-
-    /**
-     * Set a "where not" constraint on the query.
-     *
-     * @param  string  $column
-     * @param  string  $value
-     * @return $this
-     */
-    public function whereNot($column, $value)
-    {
-        return $this->where($column, '!'.$value);
-    }
-
-    /**
-     * Set a "where null" constraint on the query.
-     *
-     * @param  string  $column
-     * @return $this
-     */
-    public function whereNull($column)
-    {
-        return $this->where($column, 'NULL');
-    }
-
-    /**
-     * Set a "where not null" constraint on the query.
-     *
-     * @param  string  $column
-     * @return $this
-     */
-    public function whereNotNull($column)
-    {
-        return $this->where($column, 'NOT_NULL');
     }
 
     /**
@@ -113,15 +91,25 @@ class Exists
     }
 
     /**
-     * Format the where clauses.
+     * Set a "where null" constraint on the query.
      *
-     * @return string
+     * @param  string $column
+     * @return $this
      */
-    protected function formatWheres()
+    public function whereNull($column)
     {
-        return collect($this->wheres)->map(function ($where) {
-            return $where['column'].','.$where['value'];
-        })->implode(',');
+        return $this->where($column, 'NULL');
+    }
+
+    /**
+     * Set a "where not null" constraint on the query.
+     *
+     * @param  string $column
+     * @return $this
+     */
+    public function whereNotNull($column)
+    {
+        return $this->where($column, 'NOT_NULL');
     }
 
     /**
@@ -146,5 +134,17 @@ class Exists
             $this->column,
             $this->formatWheres()
         ), ',');
+    }
+
+    /**
+     * Format the where clauses.
+     *
+     * @return string
+     */
+    protected function formatWheres()
+    {
+        return collect($this->wheres)->map(function ($where) {
+            return $where['column'] . ',' . $where['value'];
+        })->implode(',');
     }
 }

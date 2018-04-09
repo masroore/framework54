@@ -108,15 +108,15 @@ class SlackMessage
     /**
      * Set a custom username and optional emoji icon for the Slack message.
      *
-     * @param  string  $username
-     * @param  string|null  $icon
+     * @param  string $username
+     * @param  string|null $icon
      * @return $this
      */
     public function from($username, $icon = null)
     {
         $this->username = $username;
 
-        if (! is_null($icon)) {
+        if (!is_null($icon)) {
             $this->icon = $icon;
         }
 
@@ -126,7 +126,7 @@ class SlackMessage
     /**
      * Set a custom image icon the message should use.
      *
-     * @param  string  $image
+     * @param  string $image
      * @return $this
      */
     public function image($image)
@@ -152,7 +152,7 @@ class SlackMessage
     /**
      * Set the content of the Slack message.
      *
-     * @param  string  $content
+     * @param  string $content
      * @return $this
      */
     public function content($content)
@@ -165,7 +165,7 @@ class SlackMessage
     /**
      * Define an attachment for the message.
      *
-     * @param  \Closure  $callback
+     * @param  \Closure $callback
      * @return $this
      */
     public function attachment(Closure $callback)
@@ -209,7 +209,7 @@ class SlackMessage
     /**
      * Set additional request options for the Guzzle HTTP client.
      *
-     * @param  array  $options
+     * @param  array $options
      * @return $this
      */
     public function http(array $options)

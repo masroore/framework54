@@ -2,8 +2,8 @@
 
 namespace Illuminate\Mail\Transport;
 
-use Swift_Mime_Message;
 use GuzzleHttp\ClientInterface;
+use Swift_Mime_Message;
 
 class SparkPostTransport extends Transport
 {
@@ -31,9 +31,9 @@ class SparkPostTransport extends Transport
     /**
      * Create a new SparkPost transport instance.
      *
-     * @param  \GuzzleHttp\ClientInterface  $client
-     * @param  string  $key
-     * @param  array  $options
+     * @param  \GuzzleHttp\ClientInterface $client
+     * @param  string $key
+     * @param  array $options
      * @return void
      */
     public function __construct(ClientInterface $client, $key, $options = [])
@@ -87,15 +87,15 @@ class SparkPostTransport extends Transport
     {
         $recipients = [];
 
-        foreach ((array) $message->getTo() as $email => $name) {
+        foreach ((array)$message->getTo() as $email => $name) {
             $recipients[] = ['address' => compact('name', 'email')];
         }
 
-        foreach ((array) $message->getCc() as $email => $name) {
+        foreach ((array)$message->getCc() as $email => $name) {
             $recipients[] = ['address' => compact('name', 'email')];
         }
 
-        foreach ((array) $message->getBcc() as $email => $name) {
+        foreach ((array)$message->getBcc() as $email => $name) {
             $recipients[] = ['address' => compact('name', 'email')];
         }
 
@@ -128,7 +128,7 @@ class SparkPostTransport extends Transport
     /**
      * Set the API key being used by the transport.
      *
-     * @param  string  $key
+     * @param  string $key
      * @return string
      */
     public function setKey($key)
@@ -149,7 +149,7 @@ class SparkPostTransport extends Transport
     /**
      * Set the transmission options being used by the transport.
      *
-     * @param  array  $options
+     * @param  array $options
      * @return array
      */
     public function setOptions(array $options)

@@ -32,21 +32,11 @@ trait GuardHelpers
      */
     public function authenticate()
     {
-        if (! is_null($user = $this->user())) {
+        if (!is_null($user = $this->user())) {
             return $user;
         }
 
         throw new AuthenticationException;
-    }
-
-    /**
-     * Determine if the current user is authenticated.
-     *
-     * @return bool
-     */
-    public function check()
-    {
-        return ! is_null($this->user());
     }
 
     /**
@@ -56,7 +46,17 @@ trait GuardHelpers
      */
     public function guest()
     {
-        return ! $this->check();
+        return !$this->check();
+    }
+
+    /**
+     * Determine if the current user is authenticated.
+     *
+     * @return bool
+     */
+    public function check()
+    {
+        return !is_null($this->user());
     }
 
     /**
@@ -74,7 +74,7 @@ trait GuardHelpers
     /**
      * Set the current user.
      *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
+     * @param  \Illuminate\Contracts\Auth\Authenticatable $user
      * @return $this
      */
     public function setUser(AuthenticatableContract $user)

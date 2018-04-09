@@ -3,8 +3,8 @@
 namespace Illuminate\Database\Eloquent;
 
 use Faker\Generator as Faker;
-use InvalidArgumentException;
 use Illuminate\Support\Traits\Macroable;
+use InvalidArgumentException;
 
 class FactoryBuilder
 {
@@ -62,11 +62,11 @@ class FactoryBuilder
     /**
      * Create an new builder instance.
      *
-     * @param  string  $class
-     * @param  string  $name
-     * @param  array  $definitions
-     * @param  array  $states
-     * @param  \Faker\Generator  $faker
+     * @param  string $class
+     * @param  string $name
+     * @param  array $definitions
+     * @param  array $states
+     * @param  \Faker\Generator $faker
      * @return void
      */
     public function __construct($class, $name, array $definitions, array $states, Faker $faker)
@@ -81,7 +81,7 @@ class FactoryBuilder
     /**
      * Set the amount of models you wish to create / make.
      *
-     * @param  int  $amount
+     * @param  int $amount
      * @return $this
      */
     public function times($amount)
@@ -94,7 +94,7 @@ class FactoryBuilder
     /**
      * Set the states to be applied to the model.
      *
-     * @param  array|mixed  $states
+     * @param  array|mixed $states
      * @return $this
      */
     public function states($states)
@@ -107,7 +107,7 @@ class FactoryBuilder
     /**
      * Create a model and persist it in the database if requested.
      *
-     * @param  array  $attributes
+     * @param  array $attributes
      * @return \Closure
      */
     public function lazy(array $attributes = [])
@@ -120,7 +120,7 @@ class FactoryBuilder
     /**
      * Create a collection of models and persist them to the database.
      *
-     * @param  array  $attributes
+     * @param  array $attributes
      * @return mixed
      */
     public function create(array $attributes = [])
@@ -137,24 +137,9 @@ class FactoryBuilder
     }
 
     /**
-     * Set the connection name on the results and store them.
-     *
-     * @param  \Illuminate\Support\Collection  $results
-     * @return void
-     */
-    protected function store($results)
-    {
-        $results->each(function ($model) {
-            $model->setConnection($model->newQueryWithoutScopes()->getConnection()->getName());
-
-            $model->save();
-        });
-    }
-
-    /**
      * Create a collection of models.
      *
-     * @param  array  $attributes
+     * @param  array $attributes
      * @return mixed
      */
     public function make(array $attributes = [])
@@ -173,30 +158,30 @@ class FactoryBuilder
     }
 
     /**
-     * Create an array of raw attribute arrays.
+     * Make an instance of the model with the given attributes.
      *
-     * @param  array  $attributes
-     * @return mixed
+     * @param  array $attributes
+     * @return \Illuminate\Database\Eloquent\Model
+     *
+     * @throws \InvalidArgumentException
      */
-    public function raw(array $attributes = [])
+    protected function makeInstance(array $attributes = [])
     {
-        if ($this->amount === null) {
-            return $this->getRawAttributes($attributes);
-        }
+        return Model::unguarded(function () use ($attributes) {
+            if (!isset($this->definitions[$this->class][$this->name])) {
+                throw new InvalidArgumentException("Unable to locate factory with name [{$this->name}] [{$this->class}].");
+            }
 
-        if ($this->amount < 1) {
-            return [];
-        }
-
-        return array_map(function () use ($attributes) {
-            return $this->getRawAttributes($attributes);
-        }, range(1, $this->amount));
+            return new $this->class(
+                $this->getRawAttributes($attributes)
+            );
+        });
     }
 
     /**
      * Get a raw attributes array for the model.
      *
-     * @param  array  $attributes
+     * @param  array $attributes
      * @return mixed
      */
     protected function getRawAttributes(array $attributes = [])
@@ -212,59 +197,15 @@ class FactoryBuilder
     }
 
     /**
-     * Make an instance of the model with the given attributes.
-     *
-     * @param  array  $attributes
-     * @return \Illuminate\Database\Eloquent\Model
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected function makeInstance(array $attributes = [])
-    {
-        return Model::unguarded(function () use ($attributes) {
-            if (! isset($this->definitions[$this->class][$this->name])) {
-                throw new InvalidArgumentException("Unable to locate factory with name [{$this->name}] [{$this->class}].");
-            }
-
-            return new $this->class(
-                $this->getRawAttributes($attributes)
-            );
-        });
-    }
-
-    /**
-     * Apply the active states to the model definition array.
-     *
-     * @param  array  $definition
-     * @param  array  $attributes
-     * @return array
-     */
-    protected function applyStates(array $definition, array $attributes = [])
-    {
-        foreach ($this->activeStates as $state) {
-            if (! isset($this->states[$this->class][$state])) {
-                throw new InvalidArgumentException("Unable to locate [{$state}] state for [{$this->class}].");
-            }
-
-            $definition = array_merge($definition, call_user_func(
-                $this->states[$this->class][$state],
-                $this->faker, $attributes
-            ));
-        }
-
-        return $definition;
-    }
-
-    /**
      * Expand all attributes to their underlying values.
      *
-     * @param  array  $attributes
+     * @param  array $attributes
      * @return array
      */
     protected function expandAttributes(array $attributes)
     {
         foreach ($attributes as &$attribute) {
-            if (is_callable($attribute) && ! is_string($attribute)) {
+            if (is_callable($attribute) && !is_string($attribute)) {
                 $attribute = $attribute($attributes);
             }
 
@@ -278,5 +219,64 @@ class FactoryBuilder
         }
 
         return $attributes;
+    }
+
+    /**
+     * Apply the active states to the model definition array.
+     *
+     * @param  array $definition
+     * @param  array $attributes
+     * @return array
+     */
+    protected function applyStates(array $definition, array $attributes = [])
+    {
+        foreach ($this->activeStates as $state) {
+            if (!isset($this->states[$this->class][$state])) {
+                throw new InvalidArgumentException("Unable to locate [{$state}] state for [{$this->class}].");
+            }
+
+            $definition = array_merge($definition, call_user_func(
+                $this->states[$this->class][$state],
+                $this->faker, $attributes
+            ));
+        }
+
+        return $definition;
+    }
+
+    /**
+     * Set the connection name on the results and store them.
+     *
+     * @param  \Illuminate\Support\Collection $results
+     * @return void
+     */
+    protected function store($results)
+    {
+        $results->each(function ($model) {
+            $model->setConnection($model->newQueryWithoutScopes()->getConnection()->getName());
+
+            $model->save();
+        });
+    }
+
+    /**
+     * Create an array of raw attribute arrays.
+     *
+     * @param  array $attributes
+     * @return mixed
+     */
+    public function raw(array $attributes = [])
+    {
+        if ($this->amount === null) {
+            return $this->getRawAttributes($attributes);
+        }
+
+        if ($this->amount < 1) {
+            return [];
+        }
+
+        return array_map(function () use ($attributes) {
+            return $this->getRawAttributes($attributes);
+        }, range(1, $this->amount));
     }
 }

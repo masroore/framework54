@@ -781,7 +781,7 @@ class MimeType
     /**
      * Get the MIME type for a file based on the file's extension.
      *
-     * @param  string  $filename
+     * @param  string $filename
      * @return string
      */
     public static function from($filename)

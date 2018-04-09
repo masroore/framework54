@@ -51,8 +51,8 @@ class Unique
     /**
      * Create a new unique rule instance.
      *
-     * @param  string  $table
-     * @param  string  $column
+     * @param  string $table
+     * @param  string $column
      * @return void
      */
     public function __construct($table, $column = 'NULL')
@@ -62,10 +62,22 @@ class Unique
     }
 
     /**
+     * Set a "where not" constraint on the query.
+     *
+     * @param  string $column
+     * @param  string $value
+     * @return $this
+     */
+    public function whereNot($column, $value)
+    {
+        return $this->where($column, '!' . $value);
+    }
+
+    /**
      * Set a "where" constraint on the query.
      *
-     * @param  string  $column
-     * @param  string  $value
+     * @param  string $column
+     * @param  string $value
      * @return $this
      */
     public function where($column, $value = null)
@@ -75,55 +87,6 @@ class Unique
         }
 
         $this->wheres[] = compact('column', 'value');
-
-        return $this;
-    }
-
-    /**
-     * Set a "where not" constraint on the query.
-     *
-     * @param  string  $column
-     * @param  string  $value
-     * @return $this
-     */
-    public function whereNot($column, $value)
-    {
-        return $this->where($column, '!'.$value);
-    }
-
-    /**
-     * Set a "where null" constraint on the query.
-     *
-     * @param  string  $column
-     * @return $this
-     */
-    public function whereNull($column)
-    {
-        return $this->where($column, 'NULL');
-    }
-
-    /**
-     * Set a "where not null" constraint on the query.
-     *
-     * @param  string  $column
-     * @return $this
-     */
-    public function whereNotNull($column)
-    {
-        return $this->where($column, 'NOT_NULL');
-    }
-
-    /**
-     * Ignore the given ID during the unique check.
-     *
-     * @param  mixed  $id
-     * @param  string  $idColumn
-     * @return $this
-     */
-    public function ignore($id, $idColumn = 'id')
-    {
-        $this->ignore = $id;
-        $this->idColumn = $idColumn;
 
         return $this;
     }
@@ -142,15 +105,40 @@ class Unique
     }
 
     /**
-     * Format the where clauses.
+     * Set a "where null" constraint on the query.
      *
-     * @return string
+     * @param  string $column
+     * @return $this
      */
-    protected function formatWheres()
+    public function whereNull($column)
     {
-        return collect($this->wheres)->map(function ($where) {
-            return $where['column'].','.$where['value'];
-        })->implode(',');
+        return $this->where($column, 'NULL');
+    }
+
+    /**
+     * Set a "where not null" constraint on the query.
+     *
+     * @param  string $column
+     * @return $this
+     */
+    public function whereNotNull($column)
+    {
+        return $this->where($column, 'NOT_NULL');
+    }
+
+    /**
+     * Ignore the given ID during the unique check.
+     *
+     * @param  mixed $id
+     * @param  string $idColumn
+     * @return $this
+     */
+    public function ignore($id, $idColumn = 'id')
+    {
+        $this->ignore = $id;
+        $this->idColumn = $idColumn;
+
+        return $this;
     }
 
     /**
@@ -173,9 +161,21 @@ class Unique
         return rtrim(sprintf('unique:%s,%s,%s,%s,%s',
             $this->table,
             $this->column,
-            $this->ignore ? '"'.$this->ignore.'"' : 'NULL',
+            $this->ignore ? '"' . $this->ignore . '"' : 'NULL',
             $this->idColumn,
             $this->formatWheres()
         ), ',');
+    }
+
+    /**
+     * Format the where clauses.
+     *
+     * @return string
+     */
+    protected function formatWheres()
+    {
+        return collect($this->wheres)->map(function ($where) {
+            return $where['column'] . ',' . $where['value'];
+        })->implode(',');
     }
 }

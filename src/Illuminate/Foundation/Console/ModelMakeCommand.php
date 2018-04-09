@@ -2,8 +2,8 @@
 
 namespace Illuminate\Foundation\Console;
 
-use Illuminate\Support\Str;
 use Illuminate\Console\GeneratorCommand;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 
 class ModelMakeCommand extends GeneratorCommand
@@ -36,7 +36,7 @@ class ModelMakeCommand extends GeneratorCommand
      */
     public function fire()
     {
-        if (parent::fire() === false && ! $this->option('force')) {
+        if (parent::fire() === false && !$this->option('force')) {
             return;
         }
 
@@ -88,13 +88,13 @@ class ModelMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return __DIR__.'/stubs/model.stub';
+        return __DIR__ . '/stubs/model.stub';
     }
 
     /**
      * Get the default namespace for the class.
      *
-     * @param  string  $rootNamespace
+     * @param  string $rootNamespace
      * @return string
      */
     protected function getDefaultNamespace($rootNamespace)

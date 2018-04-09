@@ -2,10 +2,10 @@
 
 namespace Illuminate\Foundation\Testing;
 
-use Mockery;
-use Illuminate\Support\Facades\Facade;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Console\Application as Artisan;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Facade;
+use Mockery;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -47,13 +47,19 @@ abstract class TestCase extends BaseTestCase
     protected $setUpHasRun = false;
 
     /**
-     * Creates the application.
+     * Register a callback to be run after the application is created.
      *
-     * Needs to be implemented by subclasses.
-     *
-     * @return \Symfony\Component\HttpKernel\HttpKernelInterface
+     * @param  callable $callback
+     * @return void
      */
-    abstract public function createApplication();
+    public function afterApplicationCreated(callable $callback)
+    {
+        $this->afterApplicationCreatedCallbacks[] = $callback;
+
+        if ($this->setUpHasRun) {
+            call_user_func($callback);
+        }
+    }
 
     /**
      * Setup the test environment.
@@ -62,7 +68,7 @@ abstract class TestCase extends BaseTestCase
      */
     protected function setUp()
     {
-        if (! $this->app) {
+        if (!$this->app) {
             $this->refreshApplication();
         }
 
@@ -88,6 +94,15 @@ abstract class TestCase extends BaseTestCase
     {
         $this->app = $this->createApplication();
     }
+
+    /**
+     * Creates the application.
+     *
+     * Needs to be implemented by subclasses.
+     *
+     * @return \Symfony\Component\HttpKernel\HttpKernelInterface
+     */
+    abstract public function createApplication();
 
     /**
      * Boot the testing helper traits.
@@ -151,24 +166,9 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Register a callback to be run after the application is created.
-     *
-     * @param  callable  $callback
-     * @return void
-     */
-    public function afterApplicationCreated(callable $callback)
-    {
-        $this->afterApplicationCreatedCallbacks[] = $callback;
-
-        if ($this->setUpHasRun) {
-            call_user_func($callback);
-        }
-    }
-
-    /**
      * Register a callback to be run before the application is destroyed.
      *
-     * @param  callable  $callback
+     * @param  callable $callback
      * @return void
      */
     protected function beforeApplicationDestroyed(callable $callback)

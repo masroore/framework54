@@ -3,23 +3,23 @@
 namespace Illuminate\Database\Eloquent\Concerns;
 
 use Closure;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Expression;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 trait QueriesRelationships
 {
     /**
      * Add a relationship count / exists condition to the query.
      *
-     * @param  string  $relation
-     * @param  string  $operator
-     * @param  int     $count
-     * @param  string  $boolean
-     * @param  \Closure|null  $callback
+     * @param  string $relation
+     * @param  string $operator
+     * @param  int $count
+     * @param  string $boolean
+     * @param  \Closure|null $callback
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function has($relation, $operator = '>=', $count = 1, $boolean = 'and', Closure $callback = null)
@@ -34,8 +34,8 @@ trait QueriesRelationships
         // the subquery to only run a "where exists" clause instead of this full "count"
         // clause. This will make these queries run much faster compared with a count.
         $method = $this->canUseExistsForExistenceCheck($operator, $count)
-                        ? 'getRelationExistenceQuery'
-                        : 'getRelationExistenceCountQuery';
+            ? 'getRelationExistenceQuery'
+            : 'getRelationExistenceCountQuery';
 
         $hasQuery = $relation->{$method}(
             $relation->getRelated()->newQuery(), $this
@@ -58,11 +58,11 @@ trait QueriesRelationships
      *
      * Sets up recursive call to whereHas until we finish the nested relation.
      *
-     * @param  string  $relations
-     * @param  string  $operator
-     * @param  int     $count
-     * @param  string  $boolean
-     * @param  \Closure|null  $callback
+     * @param  string $relations
+     * @param  string $operator
+     * @param  int $count
+     * @param  string $boolean
+     * @param  \Closure|null $callback
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     protected function hasNested($relations, $operator = '>=', $count = 1, $boolean = 'and', $callback = null)
@@ -82,11 +82,98 @@ trait QueriesRelationships
     }
 
     /**
+     * Get the "has relation" base query instance.
+     *
+     * @param  string $relation
+     * @return \Illuminate\Database\Eloquent\Relations\Relation
+     */
+    protected function getRelationWithoutConstraints($relation)
+    {
+        return Relation::noConstraints(function () use ($relation) {
+            return $this->getModel()->{$relation}();
+        });
+    }
+
+    /**
+     * Check if we can run an "exists" query to optimize performance.
+     *
+     * @param  string $operator
+     * @param  int $count
+     * @return bool
+     */
+    protected function canUseExistsForExistenceCheck($operator, $count)
+    {
+        return ($operator === '>=' || $operator === '<') && $count === 1;
+    }
+
+    /**
+     * Add the "has" condition where clause to the query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $hasQuery
+     * @param  \Illuminate\Database\Eloquent\Relations\Relation $relation
+     * @param  string $operator
+     * @param  int $count
+     * @param  string $boolean
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    protected function addHasWhere(Builder $hasQuery, Relation $relation, $operator, $count, $boolean)
+    {
+        $hasQuery->mergeConstraintsFrom($relation->getQuery());
+
+        return $this->canUseExistsForExistenceCheck($operator, $count)
+            ? $this->addWhereExistsQuery($hasQuery->toBase(), $boolean, $not = ($operator === '<' && $count === 1))
+            : $this->addWhereCountQuery($hasQuery->toBase(), $operator, $count, $boolean);
+    }
+
+    /**
+     * Merge the where constraints from another query to the current query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $from
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function mergeConstraintsFrom(Builder $from)
+    {
+        $whereBindings = Arr::get(
+            $from->getQuery()->getRawBindings(), 'where', []
+        );
+
+        // Here we have some other query that we want to merge the where constraints from. We will
+        // copy over any where constraints on the query as well as remove any global scopes the
+        // query might have removed. Then we will return ourselves with the finished merging.
+        return $this->withoutGlobalScopes(
+            $from->removedScopes()
+        )->mergeWheres(
+            $from->getQuery()->wheres, $whereBindings
+        );
+    }
+
+    /**
+     * Add a sub-query count clause to this query.
+     *
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @param  string $operator
+     * @param  int $count
+     * @param  string $boolean
+     * @return $this
+     */
+    protected function addWhereCountQuery(QueryBuilder $query, $operator = '>=', $count = 1, $boolean = 'and')
+    {
+        $this->query->addBinding($query->getBindings(), 'where');
+
+        return $this->where(
+            new Expression('(' . $query->toSql() . ')'),
+            $operator,
+            is_numeric($count) ? new Expression($count) : $count,
+            $boolean
+        );
+    }
+
+    /**
      * Add a relationship count / exists condition to the query with an "or".
      *
-     * @param  string  $relation
-     * @param  string  $operator
-     * @param  int     $count
+     * @param  string $relation
+     * @param  string $operator
+     * @param  int $count
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function orHas($relation, $operator = '>=', $count = 1)
@@ -95,22 +182,9 @@ trait QueriesRelationships
     }
 
     /**
-     * Add a relationship count / exists condition to the query.
-     *
-     * @param  string  $relation
-     * @param  string  $boolean
-     * @param  \Closure|null  $callback
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function doesntHave($relation, $boolean = 'and', Closure $callback = null)
-    {
-        return $this->has($relation, '<', 1, $boolean, $callback);
-    }
-
-    /**
      * Add a relationship count / exists condition to the query with an "or".
      *
-     * @param  string  $relation
+     * @param  string $relation
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function orDoesntHave($relation)
@@ -119,12 +193,25 @@ trait QueriesRelationships
     }
 
     /**
+     * Add a relationship count / exists condition to the query.
+     *
+     * @param  string $relation
+     * @param  string $boolean
+     * @param  \Closure|null $callback
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function doesntHave($relation, $boolean = 'and', Closure $callback = null)
+    {
+        return $this->has($relation, '<', 1, $boolean, $callback);
+    }
+
+    /**
      * Add a relationship count / exists condition to the query with where clauses.
      *
-     * @param  string  $relation
-     * @param  \Closure|null  $callback
-     * @param  string  $operator
-     * @param  int     $count
+     * @param  string $relation
+     * @param  \Closure|null $callback
+     * @param  string $operator
+     * @param  int $count
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function whereHas($relation, Closure $callback = null, $operator = '>=', $count = 1)
@@ -135,10 +222,10 @@ trait QueriesRelationships
     /**
      * Add a relationship count / exists condition to the query with where clauses and an "or".
      *
-     * @param  string    $relation
-     * @param  \Closure  $callback
-     * @param  string    $operator
-     * @param  int       $count
+     * @param  string $relation
+     * @param  \Closure $callback
+     * @param  string $operator
+     * @param  int $count
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function orWhereHas($relation, Closure $callback = null, $operator = '>=', $count = 1)
@@ -149,8 +236,8 @@ trait QueriesRelationships
     /**
      * Add a relationship count / exists condition to the query with where clauses.
      *
-     * @param  string  $relation
-     * @param  \Closure|null  $callback
+     * @param  string $relation
+     * @param  \Closure|null $callback
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function whereDoesntHave($relation, Closure $callback = null)
@@ -161,8 +248,8 @@ trait QueriesRelationships
     /**
      * Add a relationship count / exists condition to the query with where clauses and an "or".
      *
-     * @param  string    $relation
-     * @param  \Closure  $callback
+     * @param  string $relation
+     * @param  \Closure $callback
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
     public function orWhereDoesntHave($relation, Closure $callback = null)
@@ -173,7 +260,7 @@ trait QueriesRelationships
     /**
      * Add subselect queries to count the relations.
      *
-     * @param  mixed  $relations
+     * @param  mixed $relations
      * @return $this
      */
     public function withCount($relations)
@@ -183,7 +270,7 @@ trait QueriesRelationships
         }
 
         if (is_null($this->query->columns)) {
-            $this->query->select([$this->query->from.'.*']);
+            $this->query->select([$this->query->from . '.*']);
         }
 
         $relations = is_array($relations) ? $relations : func_get_args();
@@ -216,98 +303,11 @@ trait QueriesRelationships
             // Finally we will add the proper result column alias to the query and run the subselect
             // statement against the query builder. Then we will return the builder instance back
             // to the developer for further constraint chaining that needs to take place on it.
-            $column = snake_case(isset($alias) ? $alias : $name).'_count';
+            $column = snake_case(isset($alias) ? $alias : $name) . '_count';
 
             $this->selectSub($query->toBase(), $column);
         }
 
         return $this;
-    }
-
-    /**
-     * Add the "has" condition where clause to the query.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $hasQuery
-     * @param  \Illuminate\Database\Eloquent\Relations\Relation  $relation
-     * @param  string  $operator
-     * @param  int  $count
-     * @param  string  $boolean
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    protected function addHasWhere(Builder $hasQuery, Relation $relation, $operator, $count, $boolean)
-    {
-        $hasQuery->mergeConstraintsFrom($relation->getQuery());
-
-        return $this->canUseExistsForExistenceCheck($operator, $count)
-                ? $this->addWhereExistsQuery($hasQuery->toBase(), $boolean, $not = ($operator === '<' && $count === 1))
-                : $this->addWhereCountQuery($hasQuery->toBase(), $operator, $count, $boolean);
-    }
-
-    /**
-     * Merge the where constraints from another query to the current query.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $from
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function mergeConstraintsFrom(Builder $from)
-    {
-        $whereBindings = Arr::get(
-            $from->getQuery()->getRawBindings(), 'where', []
-        );
-
-        // Here we have some other query that we want to merge the where constraints from. We will
-        // copy over any where constraints on the query as well as remove any global scopes the
-        // query might have removed. Then we will return ourselves with the finished merging.
-        return $this->withoutGlobalScopes(
-            $from->removedScopes()
-        )->mergeWheres(
-            $from->getQuery()->wheres, $whereBindings
-        );
-    }
-
-    /**
-     * Add a sub-query count clause to this query.
-     *
-     * @param  \Illuminate\Database\Query\Builder $query
-     * @param  string  $operator
-     * @param  int  $count
-     * @param  string  $boolean
-     * @return $this
-     */
-    protected function addWhereCountQuery(QueryBuilder $query, $operator = '>=', $count = 1, $boolean = 'and')
-    {
-        $this->query->addBinding($query->getBindings(), 'where');
-
-        return $this->where(
-            new Expression('('.$query->toSql().')'),
-            $operator,
-            is_numeric($count) ? new Expression($count) : $count,
-            $boolean
-        );
-    }
-
-    /**
-     * Get the "has relation" base query instance.
-     *
-     * @param  string  $relation
-     * @return \Illuminate\Database\Eloquent\Relations\Relation
-     */
-    protected function getRelationWithoutConstraints($relation)
-    {
-        return Relation::noConstraints(function () use ($relation) {
-            return $this->getModel()->{$relation}();
-        });
-    }
-
-    /**
-     * Check if we can run an "exists" query to optimize performance.
-     *
-     * @param  string  $operator
-     * @param  int  $count
-     * @return bool
-     */
-    protected function canUseExistsForExistenceCheck($operator, $count)
-    {
-        return ($operator === '>=' || $operator === '<') && $count === 1;
     }
 }

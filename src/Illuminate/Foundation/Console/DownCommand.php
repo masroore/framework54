@@ -30,7 +30,7 @@ class DownCommand extends Command
     public function fire()
     {
         file_put_contents(
-            $this->laravel->storagePath().'/framework/down',
+            $this->laravel->storagePath() . '/framework/down',
             json_encode($this->getDownFilePayload(), JSON_PRETTY_PRINT)
         );
 
@@ -60,6 +60,6 @@ class DownCommand extends Command
     {
         $retry = $this->option('retry');
 
-        return is_numeric($retry) && $retry > 0 ? (int) $retry : null;
+        return is_numeric($retry) && $retry > 0 ? (int)$retry : null;
     }
 }
